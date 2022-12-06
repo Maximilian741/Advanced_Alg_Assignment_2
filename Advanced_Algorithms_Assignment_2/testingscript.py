@@ -33,13 +33,10 @@ import os
 import matplotlib as mpl
 
 #2. Load the test image, assuming the test image is in the same file directory as the test script.
-#matplotlib cant be resolved in pycharm, but it works in the terminal
-
-
+img = mpimg.imread('Image.png')
 
 
 #3. Display the image using matplotlib package.
-img = mpimg.imread('testimage.png')
 imgplot = plt.imshow(img)
 plt.show()
 
