@@ -19,7 +19,6 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib as mpl
 import segmentationClass as sc
-import networkx as nx
 
 #Prompt - Implement (i) Ford-Fulkerson algorithm, and then use it in (ii) an implementation
 #of the segmentation algorith described in section 7.10 of the kleinberg and Tardos book.
@@ -71,74 +70,129 @@ class segmentationClass:
     #at row (i,j) is in the foreground then L[i,j] = 1, otherwise L[i,j] = 0.
     def segmentImage(self,I):
         print("Segmenting image")
-        #initialize L
-        L = np.zeros((I.shape[0],I.shape[1],1))
-        #initialize a(x)
-        a = np.zeros((I.shape[0],I.shape[1],1))
-        #initialize b(x)
-        b = np.zeros((I.shape[0],I.shape[1],1))
-        #initialize p(x_i,x_j)
-        p = np.zeros((I.shape[0],I.shape[1],1))
-        #initialize x_a
-        x_a = np.zeros((1,2))
-        #initialize x_b
-        x_b = np.zeros((1,2))
-      
-        #set x_a
-        x_a[0,0] = 0
-        x_a[0,1] = 0
-        #set x_b
-        x_b[0,0] = I.shape[0]-1
-        x_b[0,1] = I.shape[1]-1
-        #set p_0
-        p_0 = 2
-        #set a(x)
-        for i in range(I.shape[0]):
-            for j in range(I.shape[1]):
-                a[i,j] = 442 - np.linalg.norm(I[i,j] - I[x_a[0,0],x_a[0,1]])
-        #set b(x)
-        for i in range(I.shape[0]):
-            for j in range(I.shape[1]):
-                b[i,j] = 442 - np.linalg.norm(I[i,j] - I[x_b[0,0],x_b[0,1]])
-        #set p(x_i,x_j)
-        for i in range(I.shape[0]):
-            for j in range(I.shape[1]):
-                if np.linalg.norm([i,j] - [x_a[0,0],x_a[0,1]]) < 2 or np.linalg.norm([i,j] - [x_b[0,0],x_b[0,1]]) < 2:
-                    p[i,j] = p_0
-                else:
-                    p[i,j] = 0
+        
+        #initialize variables
+        self.I = I
+        self.N = I.shape[0]
+        self.p0 = 100
+        self.x_a = np.array([0,0])
+        self.x_b = np.array([self.N-1,self.N-1])
+        self.a = np.zeros((self.N,self.N))
+        self.b = np.zeros((self.N,self.N))
+        self.p = np.zeros((self.N,self.N))
+        self.L = np.zeros((self.N,self.N))
+        self.G = np.zeros((self.N,self.N))
+        self.G = self.G.astype(int)
+        self.G = self.G.tolist()
+        self.G = np.array(self.G)
+        self.G = self.G.astype(int)
+        self.G = self.G.tolist()
 
-        #set up graph
-        G = nx.DiGraph()
-        #add nodes
-        for i in range(I.shape[0]):
-            for j in range(I.shape[1]):
-                G.add_node((i,j))
-        #add edges
-        for i in range(I.shape[0]):
-            for j in range(I.shape[1]):
-                if i+1 < I.shape[0]:
-                    G.add_edge((i,j),(i+1,j),capacity = p[i+1,j])
-                if i-1 >= 0:
-                    G.add_edge((i,j),(i-1,j),capacity = p[i-1,j])
-                if j+1 < I.shape[1]:
-                    G.add_edge((i,j),(i,j+1),capacity = p[i,j+1])
-                if j-1 >= 0:
-                    G.add_edge((i,j),(i,j-1),capacity = p[i,j-1])
-                G.add_edge('s',(i,j),capacity = a[i,j])
-                G.add_edge((i,j),'t',capacity = b[i,j])
-        #find max flow
-        max_flow = nx.maximum_flow(G,'s','t')
-        #find min cut
-        min_cut = nx.minimum_cut(G,'s','t')
-        #set L
-        for i in range(I.shape[0]):
+        #set a(x) and b(x) values
+        for i in range(self.N):
+            for j in range(self.N):
+                self.a[i,j] = 442 - self.distance(self.x_a,np.array([i,j]))
+                self.b[i,j] = 442 - self.distance(self.x_b,np.array([i,j]))
 
-            for j in range(I.shape[1]):
-                if (i,j) in min_cut[1]:
-                    L[i,j] = 1
+        #set p(x_i,x_j) values
+        for i in range(self.N):
+            for j in range(self.N):
+                if self.distance(np.array([i,j]),self.x_a) < 2 or self.distance(np.array([i,j]),self.x_b) < 2:
+                    self.p[i,j] = self.p0
                 else:
-                    L[i,j] = 0
-        return L
+                    self.p[i,j] = 0
+
+        #set G values
+        for i in range(self.N):
+            for j in range(self.N):
+                if i == 0:
+                    self.G[i,j] = self.a[i,j]
+                elif i == self.N-1:
+                    self.G[i,j] = self.b[i,j]
+                else:
+                    self.G[i,j] = self.p[i,j]
+
+        #set source and sink values
+        self.source = self.N*self.N
+        self.sink = self.N*self.N + 1
 
         
+        #set up graph
+        self.G = np.append(self.G,np.zeros((self.N,2)),axis=1)
+        self.G = np.append(self.G,np.zeros((2,self.N+2)),axis=0)
+        self.G[self.source,0:self.N] = self.a[0,:]
+        self.G[self.N-1,self.N:self.sink] = self.b[self.N-1,:]
+        self.G[self.source,self.sink] = 1000000
+        self.G[self.sink,self.source] = 1000000
+
+        #run Ford-Fulkerson algorithm
+        self.maxFlow = self.fordFulkerson(self.G,self.source,self.sink)
+
+        #set L values
+        for i in range(self.N):
+            for j in range(self.N):
+                if self.G[i,j] == 0:
+                    self.L[i,j] = 1
+                else:
+                    self.L[i,j] = 0
+
+        return self.L
+
+
+    #distance function
+    def distance(self,x,y):
+        return np.sqrt(np.sum((x-y)**2))
+
+    #breadth-first search
+    def breadthFirstSearch(self,rGraph,s,t,path):
+        visited = [False] * (self.sink+1)
+        queue = []
+        queue.append(s)
+        visited[s] = True
+
+        while queue:
+            u = queue.pop(0)
+
+            for ind, val in enumerate(rGraph[u]):
+                if visited[ind] == False and val > 0:
+                    queue.append(ind)
+                    visited[ind] = True
+                    path[ind] = u
+
+        return True if visited[t] else False
+
+    #Ford-Fulkerson algorithm
+    def fordFulkerson(self,graph,s,t):
+        u = 0
+        v = 0
+
+        rGraph = [[0 for column in range(self.sink+1)] for row in range(self.sink+1)]
+
+        for u in range(self.sink+1):
+            for v in range(self.sink+1):
+                rGraph[u][v] = graph[u][v]
+
+        path = [-1] * (self.sink+1)
+        maxFlow = 0
+
+        while self.breadthFirstSearch(rGraph,s,t,path):
+            pathFlow = float("Inf")
+            s = self.sink
+
+            while(s != self.source):
+                pathFlow = min(pathFlow,rGraph[path[s]][s])
+                s = path[s]
+
+            maxFlow += pathFlow
+            v = self.sink
+
+            while(v != self.source):
+                u = path[v]
+                rGraph[u][v] -= pathFlow
+                rGraph[v][u] += pathFlow
+                v = path[v]
+
+        return maxFlow
+
+#end of segmentationClass class
+
