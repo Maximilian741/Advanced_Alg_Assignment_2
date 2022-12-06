@@ -15,6 +15,11 @@ import time
 import os
 import csv
 import statistics
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import matplotlib as mpl
+import segmentationClass as sc
+import networkx as nx
 
 #Prompt - Implement (i) Ford-Fulkerson algorithm, and then use it in (ii) an implementation
 #of the segmentation algorith described in section 7.10 of the kleinberg and Tardos book.

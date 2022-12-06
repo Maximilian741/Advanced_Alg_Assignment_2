@@ -21,33 +21,49 @@
 #such as x_a, x_b, and p_0 and verify that the output changes properly.
 
 
-#Import your python class, assuming the class definition .py file is in the same file directory as the test script.
-import segmentationClass as sc
 
-#Load the test image, assuming the test image is in the same file directory as the test script.
+#1. Import your python class, assuming the class definition .py file is in the same file directory as the test script.
+import segmentationClass as sc
+#import matplotlib
+import matplotlib as mpl
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import numpy as np
+import os
 import matplotlib as mpl
 
+#2. Load the test image, assuming the test image is in the same file directory as the test script.
+#matplotlib cant be resolved in pycharm, but it works in the terminal
 
-#Display the image using matplotlib package.
-img = mpimg.imread('testImage.png')
+
+
+
+#3. Display the image using matplotlib package.
+img = mpimg.imread('testimage.png')
 imgplot = plt.imshow(img)
 plt.show()
 
-#Instantiate your class, and set the hyperparameters.
+
+#4. Instantiate your class, and set the hyperparameters.
 obj = sc.segmentationClass()
+obj.p0 = 2
+obj.x_a = np.array([0,0])
+obj.x_b = np.array([1,0])
 
-#Input the image to the segmentImage() function using the API specified above.
-L = obj.segmentImage(img)
 
-#Display the adjacency matrix for the graph nodes corresponding to the pixels at location (0,0) and (1,0) in the image.
-print(L[0,0])
-print(L[1,0])
+#5. Input the image to the segmentImage() function using the API specified above.
+t = obj.segmentImage(img)
 
-#Display the segmented image in black and white color using matplotlib, where segmentation values of 1 correspond to foreground (color of white),
+
+
+#6. Display the adjacency matrix for the graph nodes corresponding to the pixels at location (0,0) and (1,0) in the image.
+print(obj.adjacencyListToMatrix(obj.createAdjacencyListFromImage(img))[[0,3],:])
+
+
+#7. Display the segmented image in black and white color using matplotlib, where segmentation values of 1 correspond to foreground (color of white),
 #and values of 0 corrrespond to the background (color of black).
-plt.imshow(L, cmap='gray')
+plt.imshow(t, cmap = mpl.cm.gray)
 plt.show()
+
+
 
