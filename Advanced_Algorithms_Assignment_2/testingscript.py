@@ -33,7 +33,7 @@ import os
 import matplotlib as mpl
 
 #2. Load the test image, assuming the test image is in the same file directory as the test script.
-img = mpimg.imread('Image.png')
+img = mpimg.imread('test_image.png')
 
 
 #3. Display the image using matplotlib package.
