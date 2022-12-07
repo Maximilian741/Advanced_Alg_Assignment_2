@@ -33,12 +33,11 @@ import os
 import matplotlib as mpl
 
 #2. Load the test image, assuming the test image is in the same file directory as the test script.
-img = mpimg.imread('test_image.png')
+img = mpimg.imread('duck_test.jpg')
 
 
 #3. Display the image using matplotlib package.
-imgplot = plt.imshow(img)
-plt.show()
+plt.imshow(img)
 
 
 #4. Instantiate your class, and set the hyperparameters.
@@ -49,7 +48,8 @@ obj.x_b = np.array([1,0])
 
 
 #5. Input the image to the segmentImage() function using the API specified above.
-t = obj.segmentImage(img)
+#t = obj.segmentImage(img)
+obj.segmentImage(img)
 
 
 
