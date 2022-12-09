@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import matplotlib as mpl
 import segmentationClass as sc
+#import breadthFirstSearch as bfs
 
 #Prompt - Implement (i) Ford-Fulkerson algorithm, and then use it in (ii) an implementation
 #of the segmentation algorith described in section 7.10 of the kleinberg and Tardos book.
@@ -29,9 +30,12 @@ import segmentationClass as sc
 #background, denoted by b(x).  (ii), the likelihood of that pixel being in the forground
 #denoted here by a(x).  (iii), and the weights being neighboring pixels, denoted p(x_i,x_j), where x_i and x_j are the coordinates
 #of two pixels, i and j.  You must set these values in the following way:
-#a(x) = 442 - d(x,x_a)
-#b(x) = 442 - d(x,x_b)
-#p(x_i,x_j) = p_0, x(x_i,x_j) < 2 
+
+
+#a(x) = 442 - round(distance(x,x_a)))
+#b(x) = 442 - round(distance(x,x_b)))
+
+#p(x_i,x_j) = p_0, distance(x_i,x_j) < 2 
 #p(x_i,x_j) = 0, otherwise
 
 #In these equations d(x,y) is the Euclidean distance between two input vectors,
@@ -70,6 +74,8 @@ class segmentationClass:
     #at row (i,j) is in the foreground then L[i,j] = 1, otherwise L[i,j] = 0.
     #We are working with adjacency matrixes in this implementation, so we will use a 2D array to represent the graph.
     def segmentImage(self,I):
+        print("Segmenting image")
+        #allow the user to set these parameters as requested by the assignment.
         #get the size of the image
         self.size = I.shape[0]
         #set the source node
@@ -89,39 +95,62 @@ class segmentationClass:
         #create the graph
         self.graph = np.zeros((self.numNodes,self.numNodes))
         #set the source edges
-        for i in range(self.size):
-            for j in range(self.size):
-                self.graph[self.source][i*self.size+j] = 442 - self.distance(np.array([i,j]),self.x_a)
+
         #set the sink edges
         for i in range(self.size):
             for j in range(self.size):
-                self.graph[i*self.size+j][self.sink] = 442 - self.distance(np.array([i,j]),self.x_b)
-        #set the edges between nodes
+                self.graph[i*self.size+j][self.sink] = 1
+
+        #set the edges between the source and the nodes
         for i in range(self.size):
             for j in range(self.size):
-                #set the edges to the right
-                if j < self.size-1:
-                    self.graph[i*self.size+j][i*self.size+j+1] = self.p0
-                #set the edges to the left
-                if j > 0:
-                    self.graph[i*self.size+j][i*self.size+j-1] = self.p0
-                #set the edges to the top
+                self.graph[self.source][i*self.size+j] = 1
+
+        #set the edges between the nodes
+        for i in range(self.size):
+            for j in range(self.size):
+                #set the edges between the nodes and the sink
+                if i < self.size-1:
+                    self.graph[i*self.size+j][(i+1)*self.size+j] = 1
                 if i > 0:
-                    self.graph[i*self.size+j][(i-1)*self.size+j] = self.p0
-                #set the edges to the bottom
+                    self.graph[i*self.size+j][(i-1)*self.size+j] = 1
+                if j < self.size-1:
+                    self.graph[i*self.size+j][i*self.size+j+1] = 1
+                if j > 0:
+                    self.graph[i*self.size+j][i*self.size+j-1] = 1
+
+        #set the weights of the edges
+        for i in range(self.size):
+            for j in range(self.size):
+                #set the weights of the edges between the source and the nodes
+                self.graph[self.source][i*self.size+j] = 442 - self.distance(np.array([i,j]),self.x_a)
+                #set the weights of the edges between the nodes and the sink
+                self.graph[i*self.size+j][self.sink] = 442 - self.distance(np.array([i,j]),self.x_b)
+                #set the weights of the edges between the nodes
                 if i < self.size-1:
                     self.graph[i*self.size+j][(i+1)*self.size+j] = self.p0
+                if i > 0:
+                    self.graph[i*self.size+j][(i-1)*self.size+j] = self.p0
+                if j < self.size-1:
+                    self.graph[i*self.size+j][i*self.size+j+1] = self.p0
+                if j > 0:
+                    self.graph[i*self.size+j][i*self.size+j-1] = self.p0
+
         #run the Ford-Fulkerson algorithm
-        maxFlow = self.fordFulkerson(self.graph,self.source,self.sink)
-        #create the output array
+        self.fordFulkerson(self.graph,self.source,self.sink)
+
+        #create the output image
         L = np.zeros((self.size,self.size))
-        #set the output array
         for i in range(self.size):
             for j in range(self.size):
                 if self.graph[i*self.size+j][self.sink] == 0:
-                    L[i][j] = 1
+                    L[i,j] = 1
+                else:
+                    L[i,j] = 0
+
         return L
-        
+
+
 
     #distance function
     def distance(self,x,y):
@@ -133,39 +162,39 @@ class segmentationClass:
         queue = []
         queue.append(s)
         visited[s] = True
-
         while queue:
             u = queue.pop(0)
             for ind,val in enumerate(rGraph[u]):
                 if visited[ind] == False and val > 0:
                     queue.append(ind)
-                    path[ind] = u
                     visited[ind] = True
-
+                    path[ind] = u
         return True if visited[t] else False
 
     #Ford-Fulkerson algorithm
     def fordFulkerson(self,graph,s,t):
-        rGraph = graph
+        u = 0
+        v = 0
         path = [-1] * (self.sink+1)
-        maxFlow = 0
-
+        max_flow = 0
+        rGraph = graph
         while self.breadthFirstSearch(rGraph,s,t,path):
-            pathFlow = float("Inf")
-            s = t
-            while(s != self.source):
-                pathFlow = min(pathFlow,rGraph[path[s]][s])
-                s = path[s]
+            path_flow = float("Inf")
+            s = self.source
+            for v in range(self.sink+1):
+                if path[v] != -1:
+                    u = path[v]
+                    path_flow = min(path_flow,rGraph[u][v])
+            for v in range(self.sink+1):
+                if path[v] != -1:
+                    u = path[v]
+                    rGraph[u][v] -= path_flow
+                    rGraph[v][u] += path_flow
+            max_flow += path_flow
+        
 
-            maxFlow += pathFlow
-            v = t
-            while(v != self.source):
-                u = path[v]
-                rGraph[u][v] -= pathFlow
-                rGraph[v][u] += pathFlow
-                v = path[v]
-
-        return maxFlow
+       
+       
 
     #Create an adjacency list from image
     #This method takes an mage as input and returns an adjacency list( python dictionary).  This method is used inside 
@@ -221,8 +250,10 @@ class segmentationClass:
         #If there is an edge between two nodes, set the matrix value to 1
         for i in range(self.numNodes):
             for j in range(len(adjacencyList[i])):
-                if adjacencyList[i][j] != self.source and adjacencyList[i][j] != self.sink:
-                    matrix[i][adjacencyList[i][j]] = 1
+               if adjacencyList[i][j] != self.source and adjacencyList[i][j] != self.sink:
+                   matrix[i][adjacencyList[i][j]] = 1
+
+            
         return matrix
 
 
