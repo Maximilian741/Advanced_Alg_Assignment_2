@@ -33,7 +33,7 @@ import os
 import matplotlib as mpl
 
 #2. Load the test image, assuming the test image is in the same file directory as the test script.
-img = mpimg.imread('test_image.png')
+img = mpimg.imread(os.path.join(os.path.dirname(__file__), 'test_img.png'))
 
 #3. Display the image using matplotlib package.
 plt.imshow(img)
@@ -49,7 +49,7 @@ obj.x_b = np.array([1,0])
 
 #5. Input the image to the segmentImage() function using the API specified above.
 #t = obj.segmentImage(img)
-obj.segmentImage(img)
+t = obj.segmentImage(img)
 
 
 

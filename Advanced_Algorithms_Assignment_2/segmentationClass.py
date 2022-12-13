@@ -175,23 +175,22 @@ class segmentationClass:
     def fordFulkerson(self,graph,s,t):
         u = 0
         v = 0
-        path = [-1] * (self.sink+1)
+        path = [None] * (self.sink+1)
         max_flow = 0
-        rGraph = graph
+        rGraph = np.copy(graph)
         while self.breadthFirstSearch(rGraph,s,t,path):
             path_flow = float("Inf")
-            s = self.source
-            for v in range(self.sink+1):
-                if path[v] != -1:
-                    u = path[v]
-                    path_flow = min(path_flow,rGraph[u][v])
-            for v in range(self.sink+1):
-                if path[v] != -1:
-                    u = path[v]
-                    rGraph[u][v] -= path_flow
-                    rGraph[v][u] += path_flow
+            s = t
+            while(s != self.source):
+                path_flow = min(path_flow,rGraph[path[s]][s])
+                s = path[s]
             max_flow += path_flow
-        
+            v = t
+            while(v != self.source):
+                u = path[v]
+                rGraph[u][v] -= path_flow
+                rGraph[v][u] += path_flow
+                v = path[v]
 
        
        
