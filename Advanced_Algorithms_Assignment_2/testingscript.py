@@ -3,6 +3,14 @@
 #Software Assignment 2
 #Advanced Algorithms - Dr. Jordan Malof - Fall 2022
 #Testing script for segmentationClass.py
+#*************************************************************************************************************************
+#*************************************************************************************************************************
+#*************************************************************************************************************************
+#NOTE: 
+#*************************************************************************************************************************
+#*************************************************************************************************************************
+#*************************************************************************************************************************
+
 
 
 #You must provide a valide .py testing script with your class that performs the following steps:
@@ -33,14 +41,15 @@ import os
 import matplotlib as mpl
 
 #2. Load the test image, assuming the test image is in the same file directory as the test script.
-img = mpimg.imread(os.path.join(os.path.dirname(__file__), 'test_img.png'))
+#Below does not work for some reason.  Thesecondline works, but it is not as flexible as I would like.
+#img = mpimg.imread('test_image.png')
+img = mpimg.imread(os.path.join(os.path.dirname(__file__), 'test_img.jpg'))
 
 #3. Display the image using matplotlib package.
 plt.imshow(img)
 
 
 #4. Instantiate your class, and set the hyperparameters.
-
 obj = sc.segmentationClass()
 obj.p0 = 2
 obj.x_a = np.array([0,0])
