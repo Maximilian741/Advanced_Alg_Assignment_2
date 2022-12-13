@@ -110,14 +110,19 @@ class segmentationClass:
         for i in range(self.size):
             for j in range(self.size):
                 #set the edges between the nodes and the sink
+                self.graph[i*self.size+j][self.sink] = 1
                 if i < self.size-1:
                     self.graph[i*self.size+j][(i+1)*self.size+j] = 1
+            
                 if i > 0:
                     self.graph[i*self.size+j][(i-1)*self.size+j] = 1
                 if j < self.size-1:
                     self.graph[i*self.size+j][i*self.size+j+1] = 1
                 if j > 0:
                     self.graph[i*self.size+j][i*self.size+j-1] = 1
+
+        return self.graph
+        
 
         #set the weights of the edges
         for i in range(self.size):
@@ -127,6 +132,7 @@ class segmentationClass:
                 #set the weights of the edges between the nodes and the sink
                 self.graph[i*self.size+j][self.sink] = 442 - self.distance(np.array([i,j]),self.x_b)
                 #set the weights of the edges between the nodes
+                
                 if i < self.size-1:
                     self.graph[i*self.size+j][(i+1)*self.size+j] = self.p0
                 if i > 0:
